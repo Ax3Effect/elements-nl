@@ -60,20 +60,33 @@ class CsvUploadView(APIView):
                     return "success"
         else:
             return "no url"
-     
 
     def put(self, request, format=None):
         # error handling
         try:
             csv_file = request.data['file']
         except Exception:
-            return Response(status=404)
+            return Response({'error':'no csv uploaded'}, status=404)
         csv_file.seek(0)
         # check if it's valid CSV
         try:
             reader = csv.DictReader(io.StringIO(csv_file.read().decode('utf-8'))) 
         except Exception:
-            return Response(status=422)
+            return Response({'error':'not a csv file'}, status=422)
+
+        # check if it's proper CSV
+        try: 
+            first_row = next(reader)
+        except Exception:
+            return Response({'error':'invalid csv'}, status=422)
+            
+        if not first_row.get('title', None) or not first_row.get('description', None) \
+            or not first_row.get('image', None):
+            return Response({'error':'invalid csv'}, status=422)
+        else:
+            # reset csv back to first line
+            csv_file.seek(0)
+            reader.__init__(io.StringIO(csv_file.read().decode('utf-8')))
         
         # save parent object
         csv_model = UploadedCSV(user=None)
