@@ -13,5 +13,8 @@ class Data(models.Model):
     csv = models.ForeignKey(UploadedCSV, on_delete=models.CASCADE)
     title = models.CharField(max_length=400)
     description = models.CharField(max_length=1000)
-    image = models.FileField(blank=True, null=True)
+    image = models.ImageField(upload_to="cached/", blank=True, null=True)
     image_url = models.URLField(max_length=400)
+
+    def __str__(self):
+        return "#{} {} {:20}".format(self.id, self.title, self.description)
